@@ -38,7 +38,7 @@ const fetchTweet = async (id: string): Promise<string | undefined> => {
   }
 };
 
-const postTweet = async (text: string, id: string): Promise<number> => {
+const postTweet = async (text: string, id: string): Promise<string> => {
   const user = new Twitter({
     consumer_key: process.env.CONSUMER_KEY?.toString()!,
     consumer_secret: process.env.CONSUMER_SECRET?.toString()!,
@@ -49,10 +49,10 @@ const postTweet = async (text: string, id: string): Promise<number> => {
   const res = await user.post("statuses/update", {
     status: text,
     in_reply_to_status_id: id,
-    // auto_populate_reply_metadata: true,
+    auto_populate_reply_metadata: true,
   });
 
-  return res.id;
+  return res.id_str;
 };
 
 // Main program.
