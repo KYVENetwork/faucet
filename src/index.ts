@@ -79,33 +79,37 @@ const postTweet = async (text: string, id: string): Promise<string> => {
       // I'm claiming my free tokens for the @KYVENetwork testnet. 🚀
       //
       // [ADDRESS]
-      if (
-        text ===
-        `I'm claiming my free tokens for the @KYVENetwork testnet. 🚀\n\n${item.address}`
-      ) {
-        // Send the tokens to the user.
-        const transaction = await interactWrite(inst, wallet, governance, {
-          function: "transfer",
-          target: item.address,
-          qty: 1000,
-        });
+      if (text) {
+        if (
+          text.includes(
+            "I'm claiming my free tokens for the @KYVENetwork testnet. 🚀"
+          ) &&
+          text.includes(item.address)
+        ) {
+          // Send the tokens to the user.
+          const transaction = await interactWrite(inst, wallet, governance, {
+            function: "transfer",
+            target: item.address,
+            qty: 1000,
+          });
 
-        // Reply to the tweet.
-        const id = await postTweet(
-          `https://viewblock.io/arweave/tx/${transaction}`,
-          item.tweetID
-        );
+          // Reply to the tweet.
+          const id = await postTweet(
+            `https://viewblock.io/arweave/tx/${transaction}`,
+            item.tweetID
+          );
 
-        await collection.updateOne(
-          { _id: item._id },
-          {
-            $set: {
-              transaction,
-              replyID: id,
-            },
-          }
-        );
-        console.log(`Sent a tweet.\n${id}`);
+          await collection.updateOne(
+            { _id: item._id },
+            {
+              $set: {
+                transaction,
+                replyID: id,
+              },
+            }
+          );
+          console.log(`Sent a tweet.\n${id}`);
+        }
       }
     }
   });
