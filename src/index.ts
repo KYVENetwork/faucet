@@ -7,6 +7,8 @@ import Arweave from "arweave";
 import { JWKInterface } from "arweave/node/lib/wallet";
 import { MongoClient } from "mongodb";
 import needle from "needle";
+import { interactWrite } from "smartweave";
+import Twitter from "twitter-lite";
 
 // Define constants.
 const inst = new Arweave({
@@ -20,19 +22,37 @@ const wallet: JWKInterface = JSON.parse(process.env.WALLET?.toString()!);
 const governance = "C_1uo08qRuQAeDi9Y1I8fkaWYUC9IWkOrKDNe9EphJo";
 
 // Define helpers.
-const fetchTweet = async (id: number): Promise<string> => {
-  const endpoint = "https://api.twitter.com/2/tweets?ids=";
-  const params = {
-    ids: `${id}`,
-  };
+const fetchTweet = async (id: string): Promise<string | undefined> => {
+  const endpoint = `https://api.twitter.com/2/tweets/${id}`;
 
-  const res = await needle("get", endpoint, params, {
+  const { body } = await needle("get", endpoint, {
     headers: {
       Authorization: `Bearer ${process.env.TOKEN}`,
     },
   });
 
-  return res.body[0].text;
+  if (body) {
+    if (body.data) {
+      return body.data.text;
+    }
+  }
+};
+
+const postTweet = async (text: string, id: string): Promise<number> => {
+  const user = new Twitter({
+    consumer_key: process.env.CONSUMER_KEY?.toString()!,
+    consumer_secret: process.env.CONSUMER_SECRET?.toString()!,
+    access_token_key: process.env.ACCESS_KEY?.toString()!,
+    access_token_secret: process.env.ACCESS_SECRET?.toString()!,
+  });
+
+  const res = await user.post("statuses/update", {
+    status: text,
+    in_reply_to_status_id: id,
+    // auto_populate_reply_metadata: true,
+  });
+
+  return res.id;
 };
 
 // Main program.
@@ -52,12 +72,41 @@ const fetchTweet = async (id: number): Promise<string> => {
   listener.on("change", async (event) => {
     if (event.fullDocument) {
       // @ts-ignore
-      const item: { address: string; tweetID: number } = event.fullDocument;
+      const item: { _id: any; address: string; tweetID: string } =
+        event.fullDocument;
       const text = await fetchTweet(item.tweetID);
 
-      // TODO: Check the text of the tweet.
-      // TODO: Send the tokens to the user.
-      // TODO: Reply to the tweet.
+      // I'm claiming my free tokens for the @KYVENetwork testnet. 🚀
+      //
+      // [ADDRESS]
+      if (
+        text ===
+        `I'm claiming my free tokens for the @KYVENetwork testnet. 🚀\n\n${item.address}`
+      ) {
+        // Send the tokens to the user.
+        const transaction = await interactWrite(inst, wallet, governance, {
+          function: "transfer",
+          target: item.address,
+          qty: 1000,
+        });
+
+        // Reply to the tweet.
+        const id = await postTweet(
+          `https://viewblock.io/arweave/tx/${transaction}`,
+          item.tweetID
+        );
+
+        await collection.updateOne(
+          { _id: item._id },
+          {
+            $set: {
+              transaction,
+              replyID: id,
+            },
+          }
+        );
+        console.log(`Sent a tweet.\n${id}`);
+      }
     }
   });
 })();
