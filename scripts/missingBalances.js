@@ -17,7 +17,7 @@ const wallet = JSON.parse(process.env.WALLET.toString());
 
 (async () => {
   const { data: accounts } = await axios.get(
-    "https://api.kyve.network/accounts"
+    "http://localhost:4242/accounts"
   );
 
   const client = new MongoClient(process.env.MONGO.toString(), {
@@ -35,7 +35,7 @@ const wallet = JSON.parse(process.env.WALLET.toString());
       const id = await interactWrite(
         inst,
         wallet,
-        "bf8TMruaXAAeymJbe9HIzf8edTe2kmLr5iPC_qNfkeQ",
+        "LkfzZvdl_vfjRXZOPjnov18cGnnK3aDKj0qSQCgkCX8",
         {
           function: "transfer",
           target: item.address,

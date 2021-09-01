@@ -20,7 +20,7 @@ const inst = new Arweave({
 
 const wallet: JWKInterface = JSON.parse(process.env.WALLET?.toString()!);
 
-const governance = "bf8TMruaXAAeymJbe9HIzf8edTe2kmLr5iPC_qNfkeQ";
+const governance = "LkfzZvdl_vfjRXZOPjnov18cGnnK3aDKj0qSQCgkCX8";
 
 // Define helpers.
 const fetchTweet = async (id: string): Promise<string | undefined> => {
