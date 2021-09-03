@@ -16,9 +16,7 @@ const inst = new Arweave({
 const wallet = JSON.parse(process.env.WALLET.toString());
 
 (async () => {
-  const { data: accounts } = await axios.get(
-    "http://localhost:4242/accounts"
-  );
+  const { data: accounts } = await axios.get("http://localhost:4242/accounts");
 
   const client = new MongoClient(process.env.MONGO.toString(), {
     useUnifiedTopology: true,
