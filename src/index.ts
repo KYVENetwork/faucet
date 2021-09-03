@@ -120,15 +120,31 @@ const postTweet = async (text: string, id: string): Promise<string> => {
           text.includes(item.address)
         ) {
           // Send the tokens to the user.
-          const transaction = await interactWrite(inst, wallet, governance, {
-            function: "transfer",
-            target: item.address,
-            qty: 1000,
+          const transaction = await inst.createTransaction({
+            data: Math.random().toString().slice(-4),
           });
+
+          transaction.addTag("App-Name", "SmartWeaveAction");
+          transaction.addTag("App-Version", "0.3.0");
+          transaction.addTag("Contract", governance);
+          transaction.addTag(
+            "Input",
+            JSON.stringify({
+              function: "transfer",
+              target: item.address,
+              qty: 1000,
+            })
+          );
+
+          // Bump the reward for higher chance of mining.
+          transaction.reward = (+transaction.reward * 2).toString();
+
+          await inst.transactions.sign(transaction, wallet);
+          await inst.transactions.post(transaction);
 
           // Reply to the tweet.
           const id = await postTweet(
-            `https://viewblock.io/arweave/tx/${transaction}`,
+            `https://viewblock.io/arweave/tx/${transaction.id}`,
             item.tweetID
           );
 
@@ -136,7 +152,7 @@ const postTweet = async (text: string, id: string): Promise<string> => {
             { _id: item._id },
             {
               $set: {
-                transaction,
+                transaction: transaction.id,
                 replyID: id,
               },
             }
