@@ -55,10 +55,19 @@ const contract = new ethers.Contract(
           ) &&
           text.includes(item.address)
         ) {
-          // Send the tokens to the user.
+          // Mint 1,000 $KYVE to the user.
           const transaction: ContractTransaction = await contract.mint(
             item.address
           );
+
+          // Check if less than 20,000 users have claimed.
+          if ((await collection.find().toArray()).length < 20000) {
+            // Send 0.01 $DEV to the user.
+            await wallet.sendTransaction({
+              to: item.address,
+              value: ethers.utils.parseEther("0.01"),
+            });
+          }
 
           // Reply to the tweet.
           const id = await postTweet(
