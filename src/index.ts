@@ -3,7 +3,7 @@ import { config } from "dotenv";
 config();
 
 // Import dependencies.
-import ethers, { ContractTransaction } from "ethers";
+import { ethers, ContractTransaction } from "ethers";
 import { MongoClient } from "mongodb";
 import { fetchTweet, postTweet } from "./utils";
 
@@ -19,8 +19,8 @@ const provider = new ethers.providers.StaticJsonRpcProvider(
 const wallet = new ethers.Wallet(process.env.PK?.toString()!, provider);
 
 const contract = new ethers.Contract(
-  "",
-  ["function mint(address to) public onlyRole(FAUCET_ROLE)"],
+  "0x843C7378309DD8CD82C5013FAb63B6Ea86770433",
+  ["function mint(address to) public"],
   wallet
 );
 
@@ -62,7 +62,7 @@ const contract = new ethers.Contract(
 
           // Reply to the tweet.
           const id = await postTweet(
-            `https://viewblock.io/arweave/tx/${transaction.hash}`,
+            `https://moonbase-blockscout.testnet.moonbeam.network/tx/${transaction.hash}`,
             item.tweetID
           );
 
